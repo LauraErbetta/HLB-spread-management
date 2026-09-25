@@ -612,7 +612,7 @@ cpdef tuple randomized_survey(np.float64_t time, np.uint8_t survey_type, CellsBy
         found: 1 if detection is successful, 0 otherwise
         cell_success: cells, regardless of type, where detection was successful (binary, spans across all cells, not just surveyed)
     Notes:
-        a. Surveys are not affected by compliance"""
+        """
     cdef np.uint32_t tot_infected = 0, tot_tot = 0, cells_infected = 0, cell_infections = 0
     cdef np.int32_t nCells = com.nCells
     cdef np.int32_t i, j
