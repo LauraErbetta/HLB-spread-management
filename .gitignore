@@ -1,0 +1,32 @@
+# Python build/installation artifacts
+build/
+dist/
+*.egg-info/
+
+# OS-specific C output directories
+hlb_model/build_win/
+hlb_model/build_linux/
+
+# Cython generated C files
+hlb_model/cy_scripts/*.c
+hlb_model/cy_scripts/*.cpp
+
+# Compiled C extensions
+*.so
+*.pyd
+*.dll
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+test_env/
+
+# Plot output folder
+Model_outputs/
