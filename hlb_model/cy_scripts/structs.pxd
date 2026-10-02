@@ -165,6 +165,7 @@ cdef class HostClass:
     cdef public np.float64_t[:,::1] time_host
 
     cdef public np.float64_t[::1] pInf
+    cdef public np.float64_t[::1] cs_time_symptom # store time host became symptomatic
 
     cdef void update_pInf(self, np.int32_t idx)
     cdef void update_SE(self, np.int32_t idx, np.int16_t val, np.float64_t time, RateClass rates, CellSummary summary)
@@ -259,7 +260,7 @@ cdef class SaveStructure:
 
 cdef class SaveMetrics:
 
-    cdef public np.ndarray _S_removed, _tot_removed, _cit_inc, _cell_inc, _yield_proxy, _detection_results, _n_samples, _reason, _time_end, _hlb_inc
+    cdef public np.ndarray _S_removed, _tot_removed, _cit_inc, _cell_inc, _yield_proxy, _detection_results, _n_samples, _reason, _time_end, _hlb_inc, _cs_time_symptom, _n_symptom
 
     cdef public np.uint32_t[::1] S_removed, tot_removed
     cdef public np.float64_t[::1] cit_inc, cell_inc, hlb_inc
@@ -268,5 +269,7 @@ cdef class SaveMetrics:
 
     cdef public np.int8_t[::1] reason
     cdef public np.float64_t[::1] time_end
+
+    cdef public np.float64_t[::1] cs_time_symptom, n_symptom
 
     cdef update_run(self, np.int16_t run, CellsByType com, CellsByType rsd, SurveyHelperClass shc, np.float64_t[::1] detection, np.int8_t reason, np.float64_t t_end)

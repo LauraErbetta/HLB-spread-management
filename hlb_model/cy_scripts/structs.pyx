@@ -96,7 +96,7 @@ cdef class SimulationParameters:
 
         self.survey_by_prop = np.array([0, 0, 1, 1], dtype = np.uint8) # reg, buf, inf, search
         self.time_for_eradication = 3*365
-        self.removal_duration = 30*365
+        self.removal_duration = 5*365
 
         ## Survey by proportion of cells 
         self.pComSurv= np.array([[0.02, 0.0, 0.0, 0.0], [0.02, 0.25, 1.0, 1.0]], dtype = np.float64) # before, after
@@ -398,6 +398,7 @@ cdef class HostClass:
         self.rem = np.zeros(nCells, dtype=np.uint16)
         self.status_host = _status_host
         self.time_host = np.full((4, nCells), np.nan, dtype=np.float64)         # store time host became exposed, detectable, cryptic, symptomatic, removed
+        self.cs_time_symptom = np.zeros(nCells, dtype=np.float64) # store time host became symptomatic
 
         self.pInf = np.zeros(nCells, dtype=np.float64)
 
@@ -457,6 +458,9 @@ cdef class HostClass:
         if self.status_host[idx] == State.cryptic:
             self.status_host[idx] = State.infected
             self.time_host[2, idx] = time
+
+        # To compute mean time symptomatic:
+        self.cs_time_symptom[idx] += time / 365 # in years
 
         # Update rates (only simple ones)
         rates.symR.submitRate(idx, self.crp[idx] * rates.rCI)
@@ -662,6 +666,7 @@ cdef class CellsByType:
             self.host.crp[i] = 0
             self.host.inf[i] = 0
             self.host.rem[i] = 0
+            self.host.cs_time_symptom[i] = 0.0
             self.host.status_host[i] = State.susceptible
             self.vector.status_vec[i] = State.absent
             self.vector.dens_vec[i] = 0.0
@@ -952,6 +957,7 @@ cdef class SaveStructure:
             self.R_units[run, sp] = self.R_units[run, sp_last]
             self.RS_units[run, sp] = self.RS_units[run, sp_last]
 
+        # sp_current - 1 because they refer to year before
         self.yield_proxy_s_c0[run, sp_current - 1] = s_c0
         self.yield_proxy_e_c0[run, sp_current - 1] = e_c0
         self.yield_proxy_c_c0[run, sp_current - 1] = c_c0
@@ -1135,6 +1141,11 @@ cdef class SaveMetrics:
         self._time_end = np.zeros(nRuns, dtype=np.float64)
         self.time_end = self._time_end
 
+        self._cs_time_symptom = np.zeros(nRuns, dtype=np.float64)
+        self.cs_time_symptom = self._cs_time_symptom
+        self._n_symptom = np.zeros(nRuns, dtype=np.float64)
+        self.n_symptom = self._n_symptom
+
     cdef update_run(self, np.int16_t run, CellsByType com, CellsByType rsd, SurveyHelperClass shc, np.float64_t[::1] detection, np.int8_t reason, np.float64_t t_end):
         cdef Py_ssize_t i, j
         cdef np.int32_t tot_cit = 0
@@ -1153,6 +1164,10 @@ cdef class SaveMetrics:
             tot_cit += com.host.tot[i] + rsd.host.tot[i]
             cells_inf += (rem_cell + inf_cell > 0)
 
+            # Only valid for no control
+            self.cs_time_symptom[run] += com.host.cs_time_symptom[i]
+            self.n_symptom[run] += com.host.inf[i]
+
         self.tot_removed[run] = rem_cit
         self.cit_inc[run] = <np.float64_t>(inf_cit + rem_cit) / <np.float64_t>(tot_cit)
         self.hlb_inc[run] = <np.float64_t>(inf_cit) / <np.float64_t>(tot_cit)
@@ -1164,7 +1179,6 @@ cdef class SaveMetrics:
 
         self.reason[run] = reason
         self.time_end[run] = t_end
-
 
 
 

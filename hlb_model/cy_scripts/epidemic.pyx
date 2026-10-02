@@ -850,8 +850,9 @@ cpdef tuple simulation(int run, CellsByType com, CellsByType rsd, SpatialStructu
 
     if (simSetup.sim_goal == SimGoal.metrics or simSetup.sim_goal == SimGoal.metrics_traj) and sp_last_yield < save_output.yield_proxy_s_c0.shape[1]:
         sp_next = <int>c_math.floor((next_save_yield*simSetup.spyrMetrics / 365.0))
-        if sp_next >= save_output.traj_P_units.shape[1] - 1:
-            sp_next = save_output.traj_P_units.shape[1] - 1
+        
+        if sp_next >= save_output.yield_proxy_s_c0.shape[1]:
+            sp_next = save_output.yield_proxy_s_c0.shape[1]
         save_output.update_metrics_end(run, sp_last_yield , sp_next, com, rsd, mng)
 
     if simSetup.sim_goal == SimGoal.cell_status:
