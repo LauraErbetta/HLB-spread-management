@@ -269,11 +269,6 @@ cpdef void initialize_run(CellsByType com, CellsByType rsd, SpatialStructureCitr
             if simSetup.infested0 == b"host":          # present, not colonised
                 vector_arrival(locations[k], com, rsd, 0.0, mng, space)
 
-        # newE = setupPrms.nExposed0 if setupPrms.nExposed0 < com.host.tot[idx] else com.host.tot[idx]
-        # pathogen_arrival(idx, newE, com, rsd, 0.0, mng, space, params)
-
-        # if simSetup.infested0 == b"host":          # present, not colonised
-        #     vector_arrival(idx, com, rsd, 0.0, mng, space)
 
     # Infestation (com cells with vector)
     if simSetup.infested0 == b"full":           # colonised everything (com and rsd)
@@ -380,6 +375,7 @@ cpdef tuple find_next_det_event(np.float64_t t_new, CellsByType com, CellsByType
         event = do_survey(ev, t_new, com, rsd, space, mng, shc, ll, params, simSetup, rng_sim)
         ll.insert(t_new + params.deltaDem[1], Event.SI0)
 
+    # FOLLOWING CONDITIONS NEVER USED AS SPRAYS ARE GENERALLY ASSUMED TO BE CONTINUOUS (NOT FULLY TESTED)
     elif ev.event_type == Event.SR0:              # deactivate spray (regional)
         # ev.cells is a copy of where the spray was applied
         cells_spray = ev.cells

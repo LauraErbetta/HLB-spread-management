@@ -69,8 +69,6 @@ cpdef np.uint8_t host_detection(np.uint8_t nVis, np.float64_t propPCR, np.int32_
             unit_types[pos] = 3
             pos += 1
 
-        # sampled_units = np.random.choice(unit_types[:tot_units], n_actual_vis, replace=False)  # sample without replacement
-
         sampled_units = rng_sim.random_choice_without_replacement(unit_types[:tot_units], n_actual_vis)
 
         n_pcr_done = 0
@@ -113,7 +111,7 @@ cpdef remove_detected(np.float64_t time, SurveyHelperClass shc, np.uint8_t[::1] 
     cdef np.uint16_t[::1] group_array = np.zeros(8, np.uint16)
     cdef np.float64_t[::1] prop_remove = np.zeros(nCells, np.float64)
 
-    if mng.keep_attempt and mng.switchRemoval and time - mng.time_det >= params.removal_duration:
+    if mng.keep_attempt and mng.switchRemoval and time - mng.time_det >= params.removal_duration: # attempt lasts params.removal_duration after first detection
         # Stop removing with radius, switch to removing just detected units
         mng.keep_attempt = 0
         space.rem_mask_to_use = space.default_0_rem_mask
@@ -243,8 +241,6 @@ cpdef remove_detected(np.float64_t time, SurveyHelperClass shc, np.uint8_t[::1] 
                 rates_flags_rsd[<int>RatesIdx.vMd] |= temp_vec
                 update_vMd_com = 0
                 update_vMd_rsd = 0
-
-
 
             # if update_pMd_com + update_vMd_com + update_pMd_rsd + update_vMd_rsd > 0:
             #     temp_pat, temp_vec = update_nearby_availability_removal(idx, space, com, rsd, update_pMd_com + update_pMd_rsd, update_vMd_com + update_vMd_rsd)
@@ -503,7 +499,7 @@ cpdef np.uint8_t randomized_search_survey(np.ndarray cells, np.uint8_t nVis, np.
             if n_mandatory >= n_surv:
                 idxSurvCom = (np.nonzero(mandatory * mng._comp)[0]).astype(np.int32) 
             elif n_optional:
-                weights = optional * com.summary._n_stand * (1.0-params.pNoSearch*(shc._cells_surveyed)) # already searched cells 90% less likely to be picked
+                weights = optional * com.summary._n_stand * (1.0-params.pNoSearch*(shc._cells_surveyed)) # already searched cells could be less likely to be picked
                 weights_mask = (weights > 0)
                 if (weights_mask).sum() >= n_surv - n_mandatory:
                     tot_weight = weights.sum()
@@ -530,7 +526,7 @@ cpdef np.uint8_t randomized_search_survey(np.ndarray cells, np.uint8_t nVis, np.
             if n_mandatory >= n_surv:
                 idxSurvRsd = (np.nonzero(mandatory * mng._comp)[0]).astype(np.int32) 
             elif n_optional:
-                weights = optional * rsd.summary._n_stand * (1.0-params.pNoSearch*(shc._cells_surveyed)) # already searched cells 90% less likely to be picked
+                weights = optional * rsd.summary._n_stand * (1.0-params.pNoSearch*(shc._cells_surveyed)) # already searched cells could be less likely to be picked
                 weights_mask = (weights > 0)
                 if (weights_mask).sum() >= n_surv - n_mandatory:
                     tot_weight = weights.sum()
@@ -612,7 +608,7 @@ cpdef tuple randomized_survey(np.float64_t time, np.uint8_t survey_type, CellsBy
         found: 1 if detection is successful, 0 otherwise
         cell_success: cells, regardless of type, where detection was successful (binary, spans across all cells, not just surveyed)
     Notes:
-        """
+        a. Surveys are not affected by compliance"""
     cdef np.uint32_t tot_infected = 0, tot_tot = 0, cells_infected = 0, cell_infections = 0
     cdef np.int32_t nCells = com.nCells
     cdef np.int32_t i, j
@@ -773,7 +769,7 @@ cpdef np.int8_t do_survey(EventNode event, np.float64_t time, CellsByType com, C
         if spray:
             update_spray(buffer_spray, rates_flags_com, rates_flags_rsd, com, rsd, mng, space, params)
 
-        # Update rates
+        # Update total rates (only at the end because doing it individually is time consuming given the potentially high number of cells involved)
         if rates_flags_com[<int>RatesIdx.pSd]:
             com.rates.pSdR.recompute_totals()
         if rates_flags_com[<int>RatesIdx.vSd]:

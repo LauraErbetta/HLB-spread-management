@@ -186,7 +186,7 @@ cdef class RateClass:
 cdef class VectorClass:
 
     cdef public np.ndarray _dens_vec, _cc_vec
-    cdef public np.float64_t[::1] dens_vec, cc_vec                    # vector density 
+    cdef public np.float64_t[::1] dens_vec, cc_vec                    # vector density / activity index 
 
     cdef public np.uint8_t[::1] status_vec
     cdef public np.float64_t[:,::1] time_vec

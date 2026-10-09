@@ -136,13 +136,13 @@ cpdef tuple update_vSdR_noTotal(np.int32_t cell, SpatialStructureCitrus space, C
                 if (og.host.tot[idx] - og.host.rem[idx] > 0) and (og.vector.status_vec[idx] == State.absent):
                     susc_og = space.clim[idx] * og.ctrl.bctrl[idx] * og.ctrl.spray[idx]
                     new_rate = og.rates.vSdR.rates[idx] + og.rates.rSdd * susc_og * kern_value * delta_vec
-                    og.rates.vSdR.submitRate(idx, new_rate if new_rate > 1e-15 else 0.0)
+                    og.rates.vSdR.submitRate_noTotal(idx, new_rate if new_rate > 1e-15 else 0.0)
                     flag_og = 1
 
                 if (oth.host.tot[idx] - oth.host.rem[idx] > 0) and (oth.vector.status_vec[idx] == State.absent): 
                     susc_oth = space.clim[idx] * oth.ctrl.bctrl[idx] * oth.ctrl.spray[idx]
                     new_rate = oth.rates.vSdR.rates[idx] + og.rates.rSdd * susc_oth * kern_value * delta_vec
-                    oth.rates.vSdR.submitRate(idx, new_rate if new_rate > 1e-15 else 0.0)
+                    oth.rates.vSdR.submitRate_noTotal(idx, new_rate if new_rate > 1e-15 else 0.0)
                     flag_oth = 1
 
     return flag_og, flag_oth
@@ -286,7 +286,7 @@ cpdef void pat_vec_arrival(np.int32_t idx, CellsByType dest, CellsByType oth, np
     dest.update_SE(idx, 1, time)
     space.infCells[idx] = 1
     space.infCells1km[space.small_to_big[idx]] = 1
-    # no need to update pSdR, pMsR because vector just arrived (no vector density --> pInf is unconsequential)
+    # no need to update pSdR, pMsR because vector just arrived (no vector established --> pInf is unconsequential)
 
     # Vector arrival
     dest.update_AR(idx, time)

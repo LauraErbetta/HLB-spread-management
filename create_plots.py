@@ -71,7 +71,7 @@ def maps_overlayed_traj(region, plot_dict, results, nYears, compact_res, folder,
     
     # region Setup
     if len(plot_years) != 8:
-        print("ATTENTION!!! Legend positioned for 3x3 figure")
+        print("Legend positioned for 3x3 figure")
     removed = 0
     
     # Time
@@ -108,8 +108,7 @@ def maps_overlayed_traj(region, plot_dict, results, nYears, compact_res, folder,
     densInfected = (plot_dict["comDens"] + plot_dict["rsdDens"]) * hlb_units / tot_units
 
     propRemoved = rem_units / tot_units
-    # propRemoved[propRemoved < 1] = 0 # interested only in full removal
-    # propRemoved[rem_units == tot_units] = 1 # interested in all removal
+
     if np.any(propRemoved):
         removed = 1
         
@@ -231,7 +230,6 @@ def maps_overlayed_traj(region, plot_dict, results, nYears, compact_res, folder,
         
         dem_exp[dem_exp > 0] = 1
         
-        # dem_exp[dem_exp <= 0] = np.nan # transparancy
     # endregion
     
     # region Data for maps
@@ -424,7 +422,7 @@ def maps_overlayed_traj(region, plot_dict, results, nYears, compact_res, folder,
         ax.imshow(plot_grid, cmap=base_cmap, norm=base_norm, interpolation="nearest")
         
         # data
-        # im_dens_comp = ax.imshow(densInf_comp[i,:,:], cmap=cmap_dens, vmin = 0, vmax=1, interpolation="nearest")
+
         im_dens_comp = ax.imshow(densInf_comp[i,:,:], cmap=custom_cmap2, vmin = 0, vmax=100, interpolation="nearest", aspect="equal")
         im_rem_comp = ax.imshow(propRem_comp[i,:,:], cmap=mcolors.ListedColormap([colors_base[3]]), alpha=0.7, interpolation="nearest", aspect="equal")
         im_dens_og = ax.imshow(inf_grid_dens[i,:,:], cmap=cmap_dens_og, vmin = 0, vmax=100, interpolation="nearest", aspect="equal")

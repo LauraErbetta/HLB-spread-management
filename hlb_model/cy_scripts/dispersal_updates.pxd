@@ -25,5 +25,5 @@ cpdef void vector_arrival(np.int32_t idx, CellsByType dest, CellsByType oth, np.
 
 cpdef void pat_vec_arrival(np.int32_t idx, CellsByType dest, CellsByType oth, np.float64_t time, Management mng, SpatialStructureCitrus space)
 
-# do not change to cpdef, needs to be inlined!
+# do not change to cpdef, needs to be inlined
 cdef np.int32_t find_destination_md(np.int32_t oIdx, np.float64_t[::1] mask, np.int16_t[:,::1] coord_mask, SpatialStructureCitrus space, SimulationRNG rng_sim)

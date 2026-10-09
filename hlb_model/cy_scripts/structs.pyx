@@ -20,7 +20,7 @@ cdef class SimulationSetup:
         self.tMax = nYears * 365.0
 
         # Save points per year
-        self.spyrMaps = 4   # yearly
+        self.spyrMaps = 4   # quarterly
         self.spyrTraj = 365  # daily
         self.spyrMetrics = 1  # yearly
 
@@ -65,8 +65,8 @@ cdef class SetupParameters:
 
         # Dispersal and management masks
         self.sd_scale = 1.96
-        self.sd_dist_vec = 6.0
-        self.sd_dist_pat = 0.6
+        self.sd_dist_vec = 6.0 # where to split to mid-distance
+        self.sd_dist_pat = 0.6 # where to split to mid-distance
         self.md_max_dist = 6
         self.propWithin = 0.35
         self.compliance = 0.9
@@ -87,8 +87,8 @@ cdef class SimulationParameters:
         self.rEst = 1.0 / 365.0
         self.ld_scale = 130.0 # [km]
         self.ldProp = 10 ** (-3) # proportion of long distance dispersal
-        self.pE = 0.0
-        self.pCI = 1.0
+        self.pE = 0.0 # infectiousness of exposed
+        self.pCI = 1.0 # infectiousness of cryptic / symptomatic
 
         ### Management: surveys
         self.deltaReg = np.array([365.0, 365.0], dtype = np.float64)
@@ -96,41 +96,41 @@ cdef class SimulationParameters:
 
         self.survey_by_prop = np.array([0, 0, 1, 1], dtype = np.uint8) # reg, buf, inf, search
         self.time_for_eradication = 3*365
-        self.removal_duration = 5*365
+        self.removal_duration = 5*365 # doesn't matter if SimulationSetup.switchRemoval is False
 
-        ## Survey by proportion of cells 
-        self.pComSurv= np.array([[0.02, 0.0, 0.0, 0.0], [0.02, 0.25, 1.0, 1.0]], dtype = np.float64) # before, after
+        ## Survey by proportion of cells (valid only if surveys done by proportion of cells)
+        self.pComSurv= np.array([[0.02, 0.0, 0.0, 0.0], [0.02, 0.25, 1.0, 1.0]], dtype = np.float64) # before detection, after
         self.pRsdSurv= np.array([[0.0, 0.0, 0.0, 0.0], [0.0, 0.125, 0.5, 0.5]], dtype = np.float64) 
 
-        ## Survey by design prevalence
+        ## Survey by design prevalence (valid only if surveys done with design prevalence)
         self.dp = np.array([[0.01, 0.001, 0.001, 0.001], [0.0, 0.001, 0.001, 0.001]], dtype = np.float64) # com, rsd (0 if no survey) - rsd needs to be the same as com when > 0 because prop_status is defined based on commercial prevalence
         self.cl = np.array([0.9, 0.9, 0.9, 0.9], dtype=np.float64)
         self.prop_status = np.array([[0.07, 0.08, 0.08, 0.08], [0.38, 0.37, 0.37, 0.37]], dtype = np.float64) # crp, inf (technically defined based on design prevalence), doesn't sum to 1 necessarily because part of HLB+ are exposed. These are default values (assuming 1%, 0.1%, 0.1%, 0.1%), should be corrected based on simulations when running simulations
         self.reduce_rsd = 0.5 # only % of cells actually surveyed of rsd
 
         # Common to both survey types
-        self.nHostVis = np.array([[5, 0, 0, 0], [5, 5, 25, 25]], dtype = np.uint16)
-        self.pHostPCR = np.array([[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.1, 0.1]], dtype = np.float64)
-        self.nVec = np.array([[5, 0, 0, 0], [5, 5, 0, 0]], dtype = np.uint8)
+        self.nHostVis = np.array([[5, 0, 0, 0], [5, 5, 25, 25]], dtype = np.uint16) # before detection, after
+        self.pHostPCR = np.array([[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.1, 0.1]], dtype = np.float64) # before detection, after
+        self.nVec = np.array([[5, 0, 0, 0], [5, 5, 0, 0]], dtype = np.uint8) # before detection, after
         self.pVec = 1.0
         self.pVis = 0.5 
         self.pPCR = np.array([0.5, 0.5], dtype = np.float64) # cryptic, infected
         self.w_rem = np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64) # weights for inf, crp, exp, sus for both com (first 4) and rsd (last 4), in the order.
-        self.pNoSearch = 0.9 # reduction in weight for selecting cells already surveyed in search area
-        self.pRem = 1.0
+        self.pNoSearch = 0.0 # reduction in weight for selecting cells already surveyed in search area
+        self.pRem = 1.0 # probability of removing units selected for removal
 
         # Management: control
-        self.infectiousness = np.array([0.0, 1.0], dtype = np.float64)
-        self.susceptibility = np.array([0.0, 1.0], dtype = np.float64)
-        self.bctrlEffect = 0.2
+        self.infectiousness = np.array([0.0, 1.0], dtype = np.float64) # resistance / not resistant
+        self.susceptibility = np.array([0.0, 1.0], dtype = np.float64) # resistance / not resistant
+        self.bctrlEffect = 0.0 # bctrl
         self.durationSpray = 15
         self.bgSprayEffect = 0.9                                    # nominal value of background spray effect (conventional commercial only)
-        self.sprayEffect = 0.25                                      # nominal value of spray effect
+        self.sprayEffect = 0.25                                     # nominal value of spray effect
         self.modReg = 0.0                                           # change in nominal value of spray effect in regional area compared to demarcated
         self.sprayEffectDem = self.sprayEffect                      # proportion of vectors removed after insecticides application (demarcated area) 
         self.sprayEffectReg = self.sprayEffect * self.modReg        # proportion of vectors removed after insecticides application (regional area) 
-        self.deltaSprayDem = 15.0             
-        self.deltaSprayReg = 365.0 / 4.0
+        self.deltaSprayDem = 15.0   # only if spray is not continuous
+        self.deltaSprayReg = 365.0 / 4.0    # only if spray is not continuous
 
         # Flush season
         self.flushValues = np.array([1.0, 0.125, 0], dtype = np.float64)
@@ -245,7 +245,7 @@ cdef class SpatialStructureCitrus:
         self._infCells.fill(0)
         self._infCells1km.fill(0)
 
-        self.rem_mask_to_use = self.rem_p_mask # reset removal mask
+        self.rem_mask_to_use = self.rem_p_mask # reset removal mask (if changed because of switchRemoval = True, i.e., hybrid strategy)
 
     cpdef void compute_arrivals_mdd_pat(self, np.uint16_t[::1] com_units, np.uint16_t[::1] rsd_units):
         """ Computes the number of potential arrival points for pathogen mdd nearby any given cell. 
@@ -318,6 +318,7 @@ cdef class Management:
         self.cell_inc_det = 0.0
         self.cell1km_inc_det = 0.0
         self.time_stop_attempt = 0.0
+
         self.keep_attempt = 1
         self.switchRemoval = 0
 
@@ -371,9 +372,9 @@ cdef class ControlByType:
         self.sprayDem = self._sprayDem
         self.sprayReg = self._sprayReg
         self.spray_prop = self._spray_prop
-        self._bctrl = np.ones(nCells, dtype=np.float64)
-        self._inf_res = np.ones(nCells, dtype=np.float64)                        # infectiousness (based on resistance, if any)
-        self._susc_res = np.ones(nCells, dtype=np.float64)                       # susceptibility (based on resistance, if any)
+        self._bctrl = np.ones(nCells, dtype=np.float64)                             # biocontrol (if any)
+        self._inf_res = np.ones(nCells, dtype=np.float64)                           # infectiousness (based on resistance, if any)
+        self._susc_res = np.ones(nCells, dtype=np.float64)                          # susceptibility (based on resistance, if any)
         self.bctrl = self._bctrl
         self.inf_res = self._inf_res
         self.susc_res = self._susc_res
@@ -397,8 +398,8 @@ cdef class HostClass:
         self.inf = np.zeros(nCells, dtype=np.uint16)
         self.rem = np.zeros(nCells, dtype=np.uint16)
         self.status_host = _status_host
-        self.time_host = np.full((4, nCells), np.nan, dtype=np.float64)         # store time host became exposed, detectable, cryptic, symptomatic, removed
-        self.cs_time_symptom = np.zeros(nCells, dtype=np.float64) # store time host became symptomatic
+        self.time_host = np.full((4, nCells), np.nan, dtype=np.float64)         # store time cells became exposed, detectable, cryptic, symptomatic, removed
+        self.cs_time_symptom = np.zeros(nCells, dtype=np.float64) # store time host became symptomatic (cumulative)
 
         self.pInf = np.zeros(nCells, dtype=np.float64)
 
@@ -542,28 +543,12 @@ cdef class RateClass:
         self.rMdd = rMdd
         self.rSdd = rMdd    # same as Mdd because it's the same dispersal, split in two
 
-        # # Find number of blocks and limits
-        # cdef np.int32_t nBlocks = <np.int32_t>(c_math.sqrt(nCells))
-        # cdef np.int32_t min_block_size = (nCells + nBlocks - 1) // nBlocks # ceiling division
-        # cdef np.int32_t start, end
-        # cdef np.int32_t[::1] blocks_limits = np.zeros(nBlocks + 1, dtype = np.int32)
-        
-        # start = 0
-        # for b in range(nBlocks + 1):
-        #     end = start + min_block_size
-        #     if end > nCells:
-        #         end = nCells
-        #     blocks_limits[b] = start
-        #     start = end
-
         # Rates affecting cells
         self.latR = SegTree(nCells)
         self.symR = SegTree(nCells)
         self.estR = SegTree(nCells)
         self.vSdR = SegTree(nCells)
-        # self.vSdR = SqrtBlocks(nCells, nBlocks, blocks_limits)
         self.vMdR = SegTree(nCells)
-        # self.pSdR = SqrtBlocks_with_base(nCells, nBlocks, blocks_limits)
         self.pSdR = SegTree_with_base(nCells)
         self.pMdR = SegTree_with_base(nCells)
         self.lddR = SegTree_with_base(nCells)
@@ -775,7 +760,7 @@ cdef class SaveStructure:
 
     def __cinit__(self, np.int32_t nCells, np.int16_t nSpMaps, np.int16_t nSpTraj, np.int16_t nSpMetrics, np.int16_t nRuns):
         
-        """ Saving info for maps. We are interested in total amounts, regardless of citrus type. 
+        """ Saving info for maps. We are interested in total amounts. 
         - Total susceptibles
         - Total infected (E + C + I)
         - Total removed 
@@ -787,13 +772,13 @@ cdef class SaveStructure:
         self.maps_S = self._maps_S
         self.maps_I = self._maps_I
         self.maps_R = self._maps_R
-        self.zones = self._zones
+        self.zones = self._zones # demarcated area
 
-        """ Saving info for ensemble trajectories over [nRunsTraj] runs. We are interested in total amounts, regardless of citrus type. 
+        """ Saving info for ensemble trajectories over [nRuns] runs. We are interested in total amounts. 
         - Total pathogen-affected units (E + C + I + R)
         - Total pathogen-affected cells (E + C + I + R)
         - Total vector-infested cells
-        NoDataValue = 999999999 """
+        NoDataValue = -1 """
         self._traj_P_units = np.full((nRuns, nSpTraj), -1, dtype = np.float32)
         self._traj_P_cells = np.full((nRuns, nSpTraj), -1, dtype = np.float32)
         self._traj_V_cells = np.full((nRuns, nSpTraj), -1, dtype = np.float32)
@@ -801,11 +786,11 @@ cdef class SaveStructure:
         self.traj_P_cells = self._traj_P_cells
         self.traj_V_cells = self._traj_V_cells
 
-        self._traj_IC = np.zeros((nRuns, nSpTraj), dtype = np.uint32)
+        self._traj_IC = np.zeros((nRuns, nSpTraj), dtype = np.uint32) # for force of infection
         self.traj_IC = self._traj_IC
 
-        """ Saving yield proxy for ensemble trajectories over [nRunsTraj] runs. We are interested only in commercial citrus.
-        NoDataValue = 999999999 """
+        """ Saving yield proxy for ensemble trajectories over [nRuns] runs. We are interested only in commercial citrus.
+        NoDataValue = 0 """
 
         # In compliant cells
         self._yield_proxy_s_c1 = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
@@ -818,6 +803,7 @@ cdef class SaveStructure:
         self.yield_proxy_c_c1 = self._yield_proxy_c_c1
         self.yield_proxy_i_c1 = self._yield_proxy_i_c1
 
+        # In non compliant cells
         self._yield_proxy_s_c0 = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
         self._yield_proxy_e_c0 = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
         self._yield_proxy_c_c0 = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
@@ -828,11 +814,12 @@ cdef class SaveStructure:
         self.yield_proxy_c_c0 = self._yield_proxy_c_c0
         self.yield_proxy_i_c0 = self._yield_proxy_i_c0
 
-        self._tot_c0 = np.zeros(nRuns, dtype = np.uint32)
-        self._tot_c1 = np.zeros(nRuns, dtype = np.uint32)
+        self._tot_c0 = np.zeros(nRuns, dtype = np.uint32) # tot citrus in non compliant cells
+        self._tot_c1 = np.zeros(nRuns, dtype = np.uint32) # tot citrus in compliant cells
         self.tot_c0 = self._tot_c0
         self.tot_c1 = self._tot_c1
 
+        # Other metrics
         self._infections_all = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
         self.infections_all = self._infections_all
         self._infections_rsd = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
@@ -842,7 +829,7 @@ cdef class SaveStructure:
         self._RS_units = np.zeros((nRuns, nSpMetrics), dtype = np.uint32)
         self.RS_units = self._RS_units
 
-        """ Cell status """
+        # Cells status
         self.n_e_cells = np.zeros(nRuns, dtype = np.uint32)
         self.n_c_cells = np.zeros(nRuns, dtype = np.uint32)
         self.n_i_cells = np.zeros(nRuns, dtype = np.uint32)
@@ -883,7 +870,7 @@ cdef class SaveStructure:
             rem_units += com.host.rem[i] + rsd.host.rem[i]
             inf_units += inf_add
             inf_cells += (inf_add > 0)
-            # vec_cells += (com.vector.status_vec[i] == State.colonised) or (rsd.vector.status_vec[i] == State.colonised)
+            
             vec_cells += (com.vector.status_vec[i] == State.present or com.vector.status_vec[i] == State.colonised) or (rsd.vector.status_vec[i] == State.present or rsd.vector.status_vec[i] == State.colonised)
 
         for sp in range(sp_last + 1, sp_current):
@@ -917,7 +904,6 @@ cdef class SaveStructure:
         self.traj_P_units[run, sp_current] = np.float32(<np.float64_t>(inf_units) / <np.float64_t>(com.summary.citrus_total + rsd.summary.citrus_total))
         self.traj_P_cells[run, sp_current] = np.float32(<np.float64_t>(inf_cells) / <np.float64_t>(com.host.sus.shape[0]))
         self.traj_V_cells[run, sp_current] = np.float32(<np.float64_t>(vec_cells) / <np.float64_t>(com.host.sus.shape[0]))
-
 
     cdef update_metrics(self, np.int16_t run, Py_ssize_t sp_last, Py_ssize_t sp_current, CellsByType com, CellsByType rsd, Management mng):
         cdef Py_ssize_t i
