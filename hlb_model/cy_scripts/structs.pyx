@@ -960,6 +960,7 @@ cdef class SaveStructure:
         self.RS_units[run, sp_current - 1] = rem_sus
 
     cdef save_cell_status(self, np.int16_t run, CellsByType com, CellsByType rsd):
+        # Works properly only when no removal
         cdef Py_ssize_t i
         cdef np.int32_t inf = 0, crp = 0, exp = 0
 
